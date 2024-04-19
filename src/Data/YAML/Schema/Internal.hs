@@ -40,7 +40,7 @@ import           Data.YAML.Event  (ScalarStyle (..), Tag, isUntagged, mkTag, unt
 import qualified Data.YAML.Event  as YE
 
 import           Util
-import Data.Scientific (Scientific)
+import Data.Scientific (Scientific, fromFloatDigits)
 
 -- | Primitive scalar types as defined in YAML 1.2
 data Scalar = SNull               -- ^ @tag:yaml.org,2002:null@
@@ -337,24 +337,27 @@ coreDecodeFloat t
 
       pure $! read t'
 
+    nan = fromFloatDigits (0/0 :: Double)
+    inf = fromFloatDigits (1/0 :: Double)
+    minf = fromFloatDigits (-1/0 :: Double)
     literals = Map.fromList
       [ ("0"   , 0)
 
-      , (".nan", (0/0))
-      , (".NaN", (0/0))
-      , (".NAN", (0/0))
+      , (".nan", nan)
+      , (".NaN", nan)
+      , (".NAN", nan)
 
-      , (".inf", (1/0))
-      , (".Inf", (1/0))
-      , (".INF", (1/0))
+      , (".inf", inf)
+      , (".Inf", inf)
+      , (".INF", inf)
 
-      , ("+.inf", (1/0))
-      , ("+.Inf", (1/0))
-      , ("+.INF", (1/0))
+      , ("+.inf", inf)
+      , ("+.Inf", inf)
+      , ("+.INF", inf)
 
-      , ("-.inf", (-1/0))
-      , ("-.Inf", (-1/0))
-      , ("-.INF", (-1/0))
+      , ("-.inf", minf)
+      , ("-.Inf", minf)
+      , ("-.INF", minf)
       ]
 
 -- | Some tags specified in YAML 1.2
@@ -454,11 +457,7 @@ encodeBool b = if b then "true" else "false"
 --
 -- @since 0.2.0
 encodeDouble :: Scientific -> T.Text
-encodeDouble d
-  | d /= d      = ".nan"
-  | d == (1/0)  = ".inf"
-  | d == (-1/0) = "-.inf"
-  | otherwise   = T.pack . show $ d
+encodeDouble = T.pack . show
 
 -- | Encode Integer
 --
