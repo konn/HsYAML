@@ -1,0 +1,7 @@
+ignore-project: False
+with-compiler: ghc-9.2.8
+tests: True
+benchmarks: True
+
+package HsYAML
+  flags: +exe

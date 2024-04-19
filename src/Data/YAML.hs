@@ -113,6 +113,7 @@ import           Data.YAML.Pos
 import           Data.YAML.Schema.Internal
 
 import           Util
+import Data.Scientific
 
 -- $overview
 --
@@ -473,11 +474,14 @@ instance FromYAML Word32 where parseYAML = parseInt "Word32"
 instance FromYAML Word64 where parseYAML = parseInt "Word64"
 
 
-instance FromYAML Double where
+instance FromYAML Scientific where
   parseYAML = withFloat "!!float" pure
 
+instance FromYAML Double where
+  parseYAML = withFloat "!!float" (pure . toRealFloat)
+
 -- | Operate on @tag:yaml.org,2002:float@ node (or fail)
-withFloat :: String -> (Double -> Parser a) -> Node Pos -> Parser a
+withFloat :: String -> (Scientific -> Parser a) -> Node Pos -> Parser a
 withFloat _        f (Scalar pos (SFloat b)) = fixupFailPos pos (f b)
 withFloat expected _ v                       = typeMismatch expected v
 
@@ -679,8 +683,11 @@ instance Loc loc => ToYAML (Node loc) where
 instance ToYAML Bool where
   toYAML = Scalar () . SBool
 
-instance ToYAML Double where
+instance ToYAML Scientific where
   toYAML = Scalar () . SFloat
+
+instance ToYAML Double where
+  toYAML = Scalar ()  . SFloat . fromFloatDigits
 
 instance ToYAML Int     where toYAML = Scalar () . SInt . toInteger
 instance ToYAML Int8    where toYAML = Scalar () . SInt . toInteger

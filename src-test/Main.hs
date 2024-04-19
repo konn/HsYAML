@@ -37,6 +37,7 @@ import           Data.YAML.Schema           as Y
 import qualified Data.YAML.Token            as YT
 
 import qualified TML
+import Data.Scientific (Scientific, toRealFloat)
 
 main :: IO ()
 main = do
@@ -259,7 +260,7 @@ cmdDumpYAML = do
 data Value' = Object'  (Map Text Value')
             | Array'   [Value']
             | String'  !Text
-            | NumberD' !Double
+            | NumberD' !Scientific
             | NumberI' !Integer
             | Bool'    !Bool
             | Null'
@@ -269,7 +270,7 @@ toProperValue :: Value' -> J.Value
 toProperValue v = case v of
   Null'      -> J.Null
   String' t  -> J.String t
-  NumberD' x -> J.Number x
+  NumberD' x -> J.Number $ toRealFloat x
   NumberI' x -> J.Number (fromInteger x)
   Bool' b    -> J.Bool b
   Array' xs  -> J.Array (map toProperValue xs)

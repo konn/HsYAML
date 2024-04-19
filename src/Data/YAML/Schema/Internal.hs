@@ -40,13 +40,14 @@ import           Data.YAML.Event  (ScalarStyle (..), Tag, isUntagged, mkTag, unt
 import qualified Data.YAML.Event  as YE
 
 import           Util
+import Data.Scientific (Scientific)
 
 -- | Primitive scalar types as defined in YAML 1.2
-data Scalar = SNull            -- ^ @tag:yaml.org,2002:null@
-            | SBool   !Bool    -- ^ @tag:yaml.org,2002:bool@
-            | SFloat  !Double  -- ^ @tag:yaml.org,2002:float@
-            | SInt    !Integer -- ^ @tag:yaml.org,2002:int@
-            | SStr    !Text    -- ^ @tag:yaml.org,2002:str@
+data Scalar = SNull               -- ^ @tag:yaml.org,2002:null@
+            | SBool   !Bool       -- ^ @tag:yaml.org,2002:bool@
+            | SFloat  !Scientific -- ^ @tag:yaml.org,2002:float@
+            | SInt    !Integer    -- ^ @tag:yaml.org,2002:int@
+            | SStr    !Text       -- ^ @tag:yaml.org,2002:str@
 
             | SUnknown !Tag !Text -- ^ unknown/unsupported tag or untagged (thus unresolved) scalar
             deriving (Eq,Ord,Show,Generic)
@@ -271,10 +272,10 @@ coreDecodeInt t
 --
 -- > -? ( 0 | [1-9] [0-9]* ) ( \. [0-9]* )? ( [eE] [-+]? [0-9]+ )?
 --
-jsonDecodeFloat :: T.Text -> Maybe Double
+jsonDecodeFloat :: T.Text -> Maybe Scientific
 jsonDecodeFloat = either (const Nothing) Just . parse float ""
   where
-    float :: Parser Double
+    float :: Parser Scientific
     float = do
       -- -?
       p0 <- option "" ("-" <$ char '-')
@@ -306,12 +307,12 @@ jsonDecodeFloat = either (const Nothing) Just . parse float ""
 --
 -- > [-+]? ( \. [0-9]+ | [0-9]+ ( \. [0-9]* )? ) ( [eE] [-+]? [0-9]+ )?
 --
-coreDecodeFloat :: T.Text -> Maybe Double
+coreDecodeFloat :: T.Text -> Maybe Scientific
 coreDecodeFloat t
   | Just j <- Map.lookup t literals = Just j -- short-cut
   | otherwise = either (const Nothing) Just . parse float "" $ t
   where
-    float :: Parser Double
+    float :: Parser Scientific
     float = do
       -- [-+]?
       p0 <- option "" (("-" <$ char '-') P.<|> "" <$ char '+')
@@ -452,7 +453,7 @@ encodeBool b = if b then "true" else "false"
 -- | Encode Double
 --
 -- @since 0.2.0
-encodeDouble :: Double -> T.Text
+encodeDouble :: Scientific -> T.Text
 encodeDouble d
   | d /= d      = ".nan"
   | d == (1/0)  = ".inf"

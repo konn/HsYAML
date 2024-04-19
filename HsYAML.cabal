@@ -105,6 +105,7 @@ library
                      , text         >= 1.2.3    && < 2.2
                      , mtl          >= 2.2.1    && < 2.4
                      , parsec       >= 3.1.13.0 && < 3.2
+                     , scientific
                      , transformers >= 0.4      && < 0.7
 
   -- for GHC.Generics
@@ -134,6 +135,7 @@ executable yaml-test
                  , text
                  , containers
                  , mtl
+                 , scientific
                    -- non-inherited
                  , megaparsec  >= 7.0 && < 10
                  , microaeson  == 0.1.*
